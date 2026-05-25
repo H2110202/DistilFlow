@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔥 FlowForge
+# 🔥 DistilFlow
 
 **对话即建模 — 企业工作流自动化引擎**
 
@@ -58,8 +58,8 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/H2110202/FlowForge.git
-cd flowforge
+git clone https://github.com/H2110202/DistilFlow.git
+cd distilflow
 
 # 创建虚拟环境
 python -m venv .venv
@@ -139,7 +139,7 @@ python desktop.py
 
 ## 📐 FlowSpec协议
 
-FlowSpec是FlowForge的核心创新——**表单交互硬协议**，保证OA/运维系统自动填写的100%准确率。
+FlowSpec是DistilFlow的核心创新——**表单交互硬协议**，保证OA/运维系统自动填写的100%准确率。
 
 ### 设计哲学
 
@@ -216,7 +216,7 @@ FlowSpec是FlowForge的核心创新——**表单交互硬协议**，保证OA/�
 ## 📁 项目结构
 
 ```
-flowforge/
+distilflow/
 ├── backend/
 │   ├── agent.py              # Agent引擎（ReAct循环）
 │   ├── api.py                # FastAPI接口层
@@ -297,6 +297,6 @@ DINGTALK_CORP_ID=your_corp_id
 
 <div align="center">
 
-**FlowForge — 把混沌的工作流，锻造成确定性的自动化**
+**DistilFlow — 蒸馏员工智慧，流淌自动化之河**
 
 </div>
