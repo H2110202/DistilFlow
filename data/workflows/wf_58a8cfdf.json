@@ -1,0 +1,60 @@
+{
+  "id": "wf_58a8cfdf",
+  "name": "扫描OA系统 http://oa.saiterobot.co",
+  "trigger": [
+    "扫描OA系统",
+    "http://oa.saiterobot.com:9080",
+    "的所有功能模块"
+  ],
+  "status": "building",
+  "created_at": "2026-05-24T18:37:19.990420",
+  "updated_at": "2026-05-24T18:46:49.176199",
+  "created_from": "manual",
+  "source_sessions": [],
+  "usage_count": 0,
+  "success_count": 0,
+  "steps": [
+    {
+      "id": "step_1",
+      "name": "save_site_credentials",
+      "type": "tool",
+      "tool": "save_site_credentials",
+      "args": {
+        "site_url": "http://oa.saiterobot.com:9080",
+        "username": "15513451102",
+        "password": "Saite123"
+      },
+      "output_key": "save_site_credentials"
+    },
+    {
+      "id": "step_2",
+      "name": "scan_form_page",
+      "type": "tool",
+      "tool": "scan_form_page",
+      "args": {
+        "url": "http://oa.saiterobot.com:9080"
+      },
+      "output_key": "scan_form_page"
+    },
+    {
+      "id": "step_3",
+      "name": "list_files",
+      "type": "tool",
+      "tool": "list_files",
+      "args": {},
+      "output_key": "list_files"
+    },
+    {
+      "id": "step_4",
+      "name": "auto_build_template",
+      "type": "tool",
+      "tool": "auto_build_template",
+      "args": {
+        "url": "http://oa.saiterobot.com:9080",
+        "name": "OA系统首页扫描"
+      },
+      "output_key": "auto_build_template"
+    }
+  ],
+  "variables": {}
+}

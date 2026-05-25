@@ -1,0 +1,214 @@
+{
+  "version": "2.0",
+  "site_url": "http://oa.saiterobot.com:9080",
+  "site_name": "蓝凌KM OA系统",
+  "description": "OA流程硬协议。每个字段的api_name和提交值都是固定的，LLM只负责把用户口语翻译成选项value，不做任何猜测。这是保证100%准确率的核心。",
+  "submit_protocol": {
+    "method": "save",
+    "docStatus_submit": "20",
+    "docStatus_draft": "10",
+    "endpoint": "/km/review/km_review_main/kmReviewMain.do",
+    "login_endpoint": "/j_acegi_security_check"
+  },
+  "flows": {
+    "项目IT软&硬件需求申请": {
+      "template_id": "19e39f4b0061b217504b5da416a8e3c1",
+      "category": "信息化管理类",
+      "description": "申请IT软硬件设备（如电脑、鼠标、键盘、显示器等）",
+      "keywords": ["IT申请", "硬件申请", "软件申请", "电脑申请", "鼠标", "键盘", "显示器", "设备申请"],
+      "user_prompt": "请告诉我您要申请什么IT设备，以及申请原因",
+      "fields": {
+        "docSubject": {
+          "label": "流程标题",
+          "api_name": "docSubject",
+          "type": "auto",
+          "required": true,
+          "auto_fill": true,
+          "auto_rule": "IT软硬件需求申请-{申请说明}",
+          "ask_user": false,
+          "description": "自动从申请说明中提取前20字生成标题"
+        },
+        "content": {
+          "label": "申请说明",
+          "api_name": "extendDataFormInfo.value(fd_3a363236b3adda)",
+          "type": "richtext",
+          "required": true,
+          "auto_fill": false,
+          "ask_user": true,
+          "ask_prompt": "请说明申请该设备的原因（如：因工作需要，申请一个鼠标用于日常办公）",
+          "value_template": "<p>{用户输入}</p>",
+          "validation": {"min_length": 5, "max_length": 2000}
+        },
+        "company": {
+          "label": "所属公司",
+          "api_name": "extendDataFormInfo.value(fd_3a3611af52202c)",
+          "type": "auto",
+          "required": false,
+          "auto_fill": true,
+          "ask_user": false,
+          "description": "从创建流程页面的HTML中自动提取，无需用户输入"
+        },
+        "applicant_id": {
+          "label": "申请人ID",
+          "api_name": "extendDataFormInfo.value(fd_3a36117f23c6d0.id)",
+          "type": "auto",
+          "required": false,
+          "auto_fill": true,
+          "ask_user": false,
+          "description": "从创建流程页面的HTML中自动提取"
+        },
+        "department_id": {
+          "label": "申请部门ID",
+          "api_name": "extendDataFormInfo.value(fd_3a361180106e84.id)",
+          "type": "auto",
+          "required": false,
+          "auto_fill": true,
+          "ask_user": false,
+          "description": "从创建流程页面的HTML中自动提取"
+        }
+      },
+      "verified_at": "2026-05-25",
+      "verified_result": "提交成功，流程进入审批状态"
+    },
+    "IT资产领用/归还": {
+      "template_id": "19d41dab456469f7935fc3b432e80cec",
+      "category": "信息化管理类",
+      "description": "领用或归还IT资产（电脑、外设等）",
+      "keywords": ["IT领用", "IT归还", "资产领用", "电脑领用", "设备归还", "领电脑", "还电脑"],
+      "user_prompt": "请告诉我您要领用还是归还什么IT资产，以及原因",
+      "fields": {
+        "docSubject": {
+          "label": "流程标题",
+          "api_name": "docSubject",
+          "type": "auto",
+          "required": true,
+          "auto_fill": true,
+          "auto_rule": "IT资产{领用/归还}-{申请事由}",
+          "ask_user": false
+        },
+        "category_type": {
+          "label": "领用/归还",
+          "api_name": "extendDataFormInfo.value(fd_3f0f1b5a502104)",
+          "type": "radio",
+          "required": true,
+          "auto_fill": false,
+          "ask_user": true,
+          "ask_prompt": "您是要领用还是归还？",
+          "options": [
+            {"value": "1", "label": "领用", "aliases": ["领", "领取", "拿", "申请"]},
+            {"value": "2", "label": "归还", "aliases": ["还", "退", "退还", "还回"]}
+          ],
+          "value_map": {
+            "领用": "1",
+            "归还": "2"
+          }
+        },
+        "asset_category": {
+          "label": "资产类别",
+          "api_name": "extendDataFormInfo.value(fd_3f0edd65aaba44)",
+          "type": "select",
+          "required": true,
+          "auto_fill": false,
+          "ask_user": true,
+          "ask_prompt": "请选择资产类别",
+          "options": [
+            {"value": "电脑设备/电脑领用", "label": "电脑-领用", "aliases": ["领电脑", "申请电脑"]},
+            {"value": "电脑设备/电脑归还", "label": "电脑-归还", "aliases": ["还电脑", "退电脑"]},
+            {"value": "外设设备/外设领用", "label": "外设-领用", "aliases": ["领鼠标", "领键盘", "领显示器"]},
+            {"value": "外设设备/外设归还", "label": "外设-归还", "aliases": ["还鼠标", "还键盘", "还显示器"]}
+          ],
+          "value_map": {
+            "电脑领用": "电脑设备/电脑领用",
+            "电脑归还": "电脑设备/电脑归还",
+            "外设领用": "外设设备/外设领用",
+            "外设归还": "外设设备/外设归还"
+          }
+        },
+        "reason": {
+          "label": "申请事由",
+          "api_name": "extendDataFormInfo.value(fd_3f0edd16b8ca6a)",
+          "type": "textarea",
+          "required": true,
+          "auto_fill": false,
+          "ask_user": true,
+          "ask_prompt": "请说明领用/归还的原因",
+          "validation": {"min_length": 5}
+        }
+      },
+      "verified_at": "",
+      "verified_result": ""
+    },
+    "用章审批": {
+      "template_id": "17c6fe5da1b5863e1f9a13c42e4a1310",
+      "category": "行政管理类",
+      "description": "申请使用公司印章（公章、合同章等）",
+      "keywords": ["用章", "盖章", "公章", "印章", "合同章", "用印", "盖章审批"],
+      "user_prompt": "请告诉我您要使用什么类型的印章，以及用章文件名称和事由",
+      "fields": {
+        "docSubject": {
+          "label": "流程标题",
+          "api_name": "docSubject",
+          "type": "auto",
+          "required": true,
+          "auto_fill": true,
+          "auto_rule": "用章审批-{用印文件名称}",
+          "ask_user": false
+        },
+        "company_name": {
+          "label": "公司名称",
+          "api_name": "extendDataFormInfo.value(fd_3a0cd51e385e1e)",
+          "type": "text",
+          "required": true,
+          "auto_fill": false,
+          "ask_user": true,
+          "ask_prompt": "请输入用章的公司名称",
+          "value_map": {
+            "赛特": "广州赛特智能科技有限公司",
+            "广州赛特": "广州赛特智能科技有限公司",
+            "江西赛特": "江西赛特智能科技有限公司",
+            "深圳赛特": "深圳赛特智能科技有限公司"
+          }
+        },
+        "seal_type": {
+          "label": "印章类型",
+          "api_name": "_extendDataFormInfo.value(fd_3d5e9e1f51d1e4)",
+          "type": "checkbox",
+          "required": true,
+          "auto_fill": false,
+          "ask_user": true,
+          "ask_prompt": "请选择印章类型",
+          "options": [
+            {"value": "公章", "label": "公章", "aliases": ["公章", "实体公章", "盖章"]},
+            {"value": "电子公章（仅限内部使用）", "label": "电子公章", "aliases": ["电子章", "电子公章", "电子印章"]}
+          ],
+          "value_map": {
+            "公章": "公章",
+            "电子公章": "电子公章（仅限内部使用）",
+            "电子章": "电子公章（仅限内部使用）"
+          }
+        },
+        "document_name": {
+          "label": "用印文件名称",
+          "api_name": "extendDataFormInfo.value(fd_3a0cd5ed33646e)",
+          "type": "text",
+          "required": true,
+          "auto_fill": false,
+          "ask_user": true,
+          "ask_prompt": "请输入需要盖章的文件名称"
+        },
+        "reason": {
+          "label": "用章事由",
+          "api_name": "extendDataFormInfo.value(fd_3a0cd63a051ea0)",
+          "type": "textarea",
+          "required": true,
+          "auto_fill": false,
+          "ask_user": true,
+          "ask_prompt": "请说明用章事由",
+          "validation": {"min_length": 5}
+        }
+      },
+      "verified_at": "",
+      "verified_result": ""
+    }
+  }
+}

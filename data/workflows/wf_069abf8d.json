@@ -1,0 +1,18 @@
+{
+  "id": "wf_069abf8d",
+  "name": "我需要完成一个工作流，每次会先提供两个文件，分别为第三方需求",
+  "trigger": [
+    "单和工单申请单",
+    "这两个表格中的信息然",
+    "位置"
+  ],
+  "status": "building",
+  "created_at": "2026-05-24T15:56:24.679962",
+  "updated_at": "2026-05-24T15:56:24.679962",
+  "created_from": "manual",
+  "source_sessions": [],
+  "usage_count": 0,
+  "success_count": 0,
+  "steps": [],
+  "variables": {}
+}

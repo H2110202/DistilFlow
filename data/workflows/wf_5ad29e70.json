@@ -1,0 +1,93 @@
+{
+  "id": "wf_5ad29e70",
+  "name": "文档智能填充",
+  "trigger": [
+    "填充",
+    "填入",
+    "填表",
+    "录入",
+    "整理到",
+    "填入模板",
+    "数据填入"
+  ],
+  "status": "active",
+  "created_at": "2026-05-23T22:49:58.251747",
+  "updated_at": "2026-05-23T22:49:58.252755",
+  "created_from": "manual",
+  "source_sessions": [],
+  "usage_count": 0,
+  "success_count": 0,
+  "steps": [
+    {
+      "id": "step_1",
+      "name": "扫描数据来源",
+      "type": "tool",
+      "tool": "scan_folder",
+      "args": {
+        "folder_path": "{{variables.source_folder}}",
+        "recursive": true
+      },
+      "output_key": "scan_result"
+    },
+    {
+      "id": "step_2",
+      "name": "批量提取源数据",
+      "type": "tool",
+      "tool": "batch_extract",
+      "args": {
+        "folder_path": "{{variables.source_folder}}"
+      },
+      "output_key": "source_data"
+    },
+    {
+      "id": "step_3",
+      "name": "分析输出模板",
+      "type": "tool",
+      "tool": "analyze_template",
+      "args": {
+        "file_path": "{{variables.template_path}}"
+      },
+      "output_key": "template_fields"
+    },
+    {
+      "id": "step_4",
+      "name": "语义匹配",
+      "type": "tool",
+      "tool": "match_fields",
+      "args": {},
+      "output_key": "match_result"
+    },
+    {
+      "id": "step_5",
+      "name": "确认匹配结果",
+      "type": "human_confirm",
+      "message": "匹配结果如上，确认填入？",
+      "options": [
+        "确认",
+        "取消"
+      ]
+    },
+    {
+      "id": "step_6",
+      "name": "精准填充",
+      "type": "tool",
+      "tool": "fill_template",
+      "args": {
+        "template_path": "{{variables.template_path}}"
+      },
+      "output_key": "fill_result"
+    }
+  ],
+  "variables": {
+    "source_folder": {
+      "type": "string",
+      "required": true,
+      "description": "数据来源文件夹路径"
+    },
+    "template_path": {
+      "type": "string",
+      "required": true,
+      "description": "输出模板文件路径"
+    }
+  }
+}

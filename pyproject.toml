@@ -1,0 +1,67 @@
+[project]
+name = "flowforge"
+version = "0.1.0"
+description = "FlowForge — 对话即建模的企业工作流自动化引擎"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [
+    {name = "FlowForge Contributors"},
+]
+keywords = ["workflow", "automation", "rpa", "agent", "llm", "oa", "enterprise"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+    "python-dotenv>=1.0",
+    "openpyxl>=3.1",
+    "xlrd>=2.0",
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "pdfplumber>=0.11",
+    "Pillow>=10.3",
+    "uvicorn[standard]>=0.30",
+    "fastapi>=0.111",
+    "python-multipart>=0.0.6",
+    "pywebview>=5.3",
+    "playwright>=1.40",
+]
+
+[project.optional-dependencies]
+ocr = [
+    "paddleocr>=2.8",
+    "paddlepaddle>=3.0",
+]
+memory = [
+    "mem0ai>=0.1",
+    "qdrant-client>=1.11",
+]
+all = [
+    "flowforge[ocr,memory]",
+    "pymupdf>=1.24",
+    "easyocr>=1.7",
+    "pyyaml>=6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/flowforge"
+Repository = "https://github.com/YOUR_USERNAME/flowforge"
+Issues = "https://github.com/YOUR_USERNAME/flowforge/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["backend"]

@@ -1,0 +1,62 @@
+{
+  "id": "file_convert",
+  "name": "文件格式转换",
+  "description": "将文件从一种格式转换为另一种格式",
+  "trigger": [
+    "转换",
+    "转成",
+    "变成",
+    "导出为",
+    "另存为",
+    "格式转换"
+  ],
+  "rules": [
+    "先读取文件确认内容完整",
+    "转换前确认目标格式"
+  ],
+  "steps": [
+    {
+      "id": "step_1",
+      "name": "读取源文件",
+      "type": "tool",
+      "tool": "read_excel",
+      "args": {
+        "file_path": "{{variables.file_path}}"
+      },
+      "output_key": "source_data"
+    },
+    {
+      "id": "step_2",
+      "name": "确认转换",
+      "type": "human_confirm",
+      "message": "文件已读取，确认转换格式？",
+      "options": [
+        "确认",
+        "取消"
+      ]
+    },
+    {
+      "id": "step_3",
+      "name": "执行转换",
+      "type": "tool",
+      "tool": "execute_code",
+      "args": {},
+      "output_key": "convert_result"
+    },
+    {
+      "id": "step_4",
+      "name": "保存结果",
+      "type": "tool",
+      "tool": "save_file",
+      "args": {},
+      "output_key": "save_result"
+    }
+  ],
+  "variables": {
+    "file_path": {
+      "type": "string",
+      "required": true,
+      "description": "源文件路径"
+    }
+  }
+}
