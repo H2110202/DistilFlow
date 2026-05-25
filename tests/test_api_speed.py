@@ -27,7 +27,7 @@ async def main():
     creds = cred_store.get_credentials(BASE_URL)
 
     print("=" * 60)
-    print("FlowCraft OA流程极速提交 — 最终优化版")
+    print("DistilFlow OA流程极速提交 — 最终优化版")
     print("=" * 60)
 
     total_start = time.time()

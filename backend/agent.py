@@ -31,7 +31,7 @@ from backend.workflows.engine import WorkflowEngine
 from backend.workflows.skill_templates import SkillTemplates
 
 
-SYSTEM_PROMPT_TEMPLATE = """你是{company_name}的FlowCraft流程工坊助手。通过对话帮员工搭建工作流并执行。
+SYSTEM_PROMPT_TEMPLATE = """你是{company_name}的DistilFlow智能助手。通过对话帮员工搭建工作流并执行。
 
 ## 核心规则
 1. 信息不足时**绝对不能猜测**，必须用编号列表追问，一次问完

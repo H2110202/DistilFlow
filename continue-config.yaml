@@ -5,7 +5,7 @@
 version: 0.8
 
 models:
-  - name: "工作助手"
+  - name: "DistilFlow"
     provider: "openai"
     model: "enterprise-agent-default"
     apiBase: "http://127.0.0.1:8001/v1"
@@ -14,9 +14,9 @@ models:
     completionOptions:
       temperature: 0.3
       maxTokens: 4096
-    title: "🏢 工作助手 (本地蒸馏Agent)"
+    title: "🏢 DistilFlow (本地Agent)"
 
-  - name: "工作助手 (流式)"
+  - name: "DistilFlow (流式)"
     provider: "openai"
     model: "enterprise-agent-default"
     apiBase: "http://127.0.0.1:8001/v1"
@@ -26,10 +26,10 @@ models:
       temperature: 0.3
       maxTokens: 4096
       stream: true
-    title: "🏢 工作助手-流式"
+    title: "🏢 DistilFlow-流式"
 
 tabAutocompleteModel:
-  name: "工作助手"
+  name: "DistilFlow"
   provider: "openai"
   model: "enterprise-agent-default"
   apiBase: "http://127.0.0.1:8001/v1"

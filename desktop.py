@@ -27,7 +27,7 @@ def main():
 
     print(f"打开桌面窗口 (API: {api_port})...")
     window = webview.create_window(
-        title="赛特员工分身",
+        title="DistilFlow",
         url=f"http://127.0.0.1:{api_port}",
         width=1280,
         height=800,

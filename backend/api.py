@@ -22,7 +22,7 @@ from backend.tools.registry import registry
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
-app = FastAPI(title="赛特员工分身 - API")
+app = FastAPI(title="DistilFlow API")
 
 _server_start_time = time.time()
 
@@ -32,6 +32,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "service": "distilflow", "uptime": round(time.time() - _server_start_time, 1)}
 
 
 @app.get("/", response_class=HTMLResponse)

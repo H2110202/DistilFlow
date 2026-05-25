@@ -889,7 +889,7 @@ body {
   <main class="main-content" id="mainContent">
     <div class="titlebar">
       <button class="titlebar-toggle" id="toggleSidebar" title="切换侧栏">☰</button>
-      <div class="titlebar-title" id="titlebarTitle">赛特员工分身</div>
+      <div class="titlebar-title" id="titlebarTitle">DistilFlow</div>
       <div class="titlebar-actions">
         <button class="titlebar-btn" title="技能" id="toggleSkills">⚡</button>
       </div>
@@ -2022,7 +2022,7 @@ function initDingTalkQR(appKey, corpId) {
         client_id: appKey,
         scope: corpId ? 'openid corpid' : 'openid',
         response_type: 'code',
-        state: 'flowcraft',
+        state: 'distilflow',
         prompt: 'consent',
       },
       (result) => {

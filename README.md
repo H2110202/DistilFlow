@@ -90,11 +90,34 @@ cp .env.example .env
 ### 启动
 
 ```bash
-# Web模式（浏览器访问）
+# Web模式（浏览器访问，默认）
 python start.py
 
 # 桌面模式（pywebview窗口）
-python desktop.py
+python start.py desktop
+
+# API模式（供IDE插件接入）
+python start.py api
+```
+
+浏览器打开 http://localhost:8000 即可使用。
+
+### Docker 部署
+
+```bash
+# 克隆项目
+git clone https://github.com/H2110202/DistilFlow.git
+cd distilflow
+
+# 配置环境变量
+cp .env.example .env
+# 编辑 .env 填入 API Key
+
+# 一键启动
+docker compose up -d
+
+# 查看日志
+docker compose logs -f
 ```
 
 浏览器打开 http://localhost:8000 即可使用。
@@ -246,10 +269,16 @@ distilflow/
 │   │   └── oa_flow_specs.json # FlowSpec协议文件
 │   ├── skill_templates/      # 技能模板
 │   └── workflows/            # 工作流定义
+├── .github/                  # GitHub模板
+│   └── ISSUE_TEMPLATE/       # Issue模板
 ├── tests/                    # 测试
-├── app.py                    # Web应用入口
+├── app.py                    # Chainlit前端入口
 ├── desktop.py                # 桌面应用入口
 ├── start.py                  # 一键启动脚本
+├── Dockerfile                # Docker构建
+├── docker-compose.yml        # Docker Compose
+├── CHANGELOG.md              # 变更日志
+├── CONTRIBUTING.md           # 贡献指南
 └── pyproject.toml            # 项目配置
 ```
 
