@@ -55,9 +55,9 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/YOUR_USERNAME/flowforge"
-Repository = "https://github.com/YOUR_USERNAME/flowforge"
-Issues = "https://github.com/YOUR_USERNAME/flowforge/issues"
+Homepage = "https://github.com/H2110202/FlowForge"
+Repository = "https://github.com/H2110202/FlowForge"
+Issues = "https://github.com/H2110202/FlowForge/issues"
 
 [build-system]
 requires = ["hatchling"]

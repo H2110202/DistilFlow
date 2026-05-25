@@ -58,7 +58,7 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/YOUR_USERNAME/flowforge.git
+git clone https://github.com/H2110202/FlowForge.git
 cd flowforge
 
 # 创建虚拟环境
