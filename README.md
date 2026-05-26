@@ -2,7 +2,7 @@
 
 # 🔥 DistilFlow
 
-**对话即建模 — 企业工作流自动化引擎**
+**对话即创立分身 — 企业零基础员工AI创建工作流数字分身+agent自学习+muti—agent**
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
