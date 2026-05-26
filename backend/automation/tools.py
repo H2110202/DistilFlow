@@ -974,7 +974,7 @@ async def _do_submit_oa_flow(base_url: str, template_id: str, form_data: dict, s
         await client.aclose()
 
 
-@registry.register(name="submit_oa_flow", description="极速提交OA流程（绕过浏览器，直接API提交）。提供模板ID和表单数据即可，速度比浏览器方式快10-16倍。支持蓝凌KM等OA系统。会自动校验FlowSpec中的必填字段，缺少时返回追问提示", category="automation")
+@registry.register(name="submit_oa_flow", description="极速提交OA流程（绕过浏览器，直接API提交）。提供模板ID和表单数据即可，速度比浏览器方式快10-16倍。支持OA系统。会自动校验FlowSpec中的必填字段，缺少时返回追问提示", category="automation")
 def submit_oa_flow(site_url: str, template_id: str, form_data: str, submit: bool = True):
     try:
         parsed_data = json.loads(form_data) if isinstance(form_data, str) else form_data

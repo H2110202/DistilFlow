@@ -135,7 +135,7 @@ async def fetch_provider_models(provider: str = "openrouter"):
 
     headers = {"Authorization": f"Bearer {key}"}
     if provider == "openrouter":
-        headers["HTTP-Referer"] = "https://saite-agent.local"
+        headers["HTTP-Referer"] = "https://distilflow.local"
     if provider == "anthropic":
         headers = {"x-api-key": key, "anthropic-version": "2023-06-01"}
 

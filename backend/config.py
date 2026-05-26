@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     max_tool_call_rounds: int = 10
     tool_call_timeout: int = 30
 
-    company_name: str = "默认公司"
-    department: str = "默认部门"
+    company_name: str = ""
+    department: str = ""
 
     dingtalk_app_key: str = ""
     dingtalk_app_secret: str = ""

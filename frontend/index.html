@@ -865,7 +865,7 @@ body {
       <div class="sidebar-header">
         <div class="sidebar-brand">
           <div class="sidebar-brand-icon">S</div>
-          <span>赛特分身</span>
+          <span>DistilFlow</span>
         </div>
         <div class="sidebar-header-actions">
           <button class="sidebar-action-btn" title="新对话" id="newChatBtn">✚</button>
@@ -1108,7 +1108,7 @@ function renderModelDropdown() {
     grouped[key].push(m);
   }
 
-  const currentModel = document.getElementById('settingModel')?.value || localStorage.getItem('saite_current_model') || '';
+  const currentModel = document.getElementById('settingModel')?.value || localStorage.getItem('distilflow_current_model') || '';
   const groupKeys = Object.keys(grouped);
   const hasMultiple = groupKeys.length > 1;
 
@@ -1138,7 +1138,7 @@ function renderModelDropdown() {
 
       const shortName = modelId.split('/').pop() || modelId;
       modelLabel.textContent = shortName;
-      localStorage.setItem('saite_current_model', modelId);
+      localStorage.setItem('distilflow_current_model', modelId);
 
       try {
         await fetch(`${API_BASE}/api/settings`, {
@@ -1857,13 +1857,13 @@ document.getElementById('settingsBtn').addEventListener('click', async () => {
         document.getElementById('settingApiKey').placeholder = `填入 ${p.name} 的 API Key`;
       }
       if (d.model) {
-        localStorage.setItem('saite_current_model', d.model);
+        localStorage.setItem('distilflow_current_model', d.model);
         const shortName = d.model.split('/').pop() || d.model;
         modelLabel.textContent = shortName;
       }
     }
   } catch(e) {
-    const cfg = JSON.parse(localStorage.getItem('saite_config') || '{}');
+    const cfg = JSON.parse(localStorage.getItem('distilflow_config') || '{}');
     if (cfg.provider) {
       currentProvider = cfg.provider;
       document.querySelectorAll('.provider-card').forEach(c => {
@@ -1883,7 +1883,7 @@ document.getElementById('settingsCancel').addEventListener('click', () => {
 
 document.getElementById('settingsSave').addEventListener('click', async () => {
   const apiKey = document.getElementById('settingApiKey').value.trim();
-  const currentModel = localStorage.getItem('saite_current_model') || '';
+  const currentModel = localStorage.getItem('distilflow_current_model') || '';
   const dingAppKey = document.getElementById('settingDingAppKey').value.trim();
   const dingAppSecret = document.getElementById('settingDingAppSecret').value.trim();
   const dingCorpId = document.getElementById('settingDingCorpId').value.trim();
@@ -1897,7 +1897,7 @@ document.getElementById('settingsSave').addEventListener('click', async () => {
     dingtalk_app_secret: dingAppSecret,
     dingtalk_corp_id: dingCorpId,
   };
-  localStorage.setItem('saite_config', JSON.stringify(cfg));
+  localStorage.setItem('distilflow_config', JSON.stringify(cfg));
 
   if (currentModel) {
     const shortName = currentModel.split('/').pop() || currentModel;
@@ -1934,7 +1934,7 @@ document.getElementById('settingsSave').addEventListener('click', async () => {
   } else if (availableModels.length > 0) {
     const first = availableModels[0];
     modelLabel.textContent = (first.name || first.id).split('/').pop();
-    localStorage.setItem('saite_current_model', first.id);
+    localStorage.setItem('distilflow_current_model', first.id);
     await fetch(`${API_BASE}/api/settings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1958,18 +1958,18 @@ async function initSettings() {
       });
     }
     if (d.model) {
-      localStorage.setItem('saite_current_model', d.model);
+      localStorage.setItem('distilflow_current_model', d.model);
       const shortName = d.model.split('/').pop() || d.model;
       modelLabel.textContent = shortName;
     }
-    localStorage.setItem('saite_config', JSON.stringify({
+    localStorage.setItem('distilflow_config', JSON.stringify({
       provider: d.provider || 'openrouter',
       model: d.model || '',
       company: d.company || '',
       baseUrl: (d.provider_base_urls || {})[d.provider || 'openrouter'] || PROVIDERS[d.provider || 'openrouter']?.baseUrl || '',
     }));
   } catch(e) {
-    const cfg = JSON.parse(localStorage.getItem('saite_config') || '{}');
+    const cfg = JSON.parse(localStorage.getItem('distilflow_config') || '{}');
     if (cfg.provider && PROVIDERS[cfg.provider]) {
       currentProvider = cfg.provider;
       document.querySelectorAll('.provider-card').forEach(c => {
@@ -1985,7 +1985,7 @@ async function initSettings() {
 initSettings();
 
 async function initLogin() {
-  const savedUser = localStorage.getItem('saite_user');
+  const savedUser = localStorage.getItem('distilflow_user');
   if (savedUser) {
     try {
       currentUser = JSON.parse(savedUser);
@@ -2070,7 +2070,7 @@ async function handleDingTalkLogin(authCode) {
       email: d.email,
       title: d.title,
     };
-    localStorage.setItem('saite_user', JSON.stringify(currentUser));
+    localStorage.setItem('distilflow_user', JSON.stringify(currentUser));
     updateUserDisplay();
     document.getElementById('loginOverlay').classList.add('hidden');
     showToast(`欢迎，${d.name || '员工'}`);

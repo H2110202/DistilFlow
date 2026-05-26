@@ -1,0 +1,54 @@
+{
+  "version": "2.0",
+  "site_url": "http://your-oa-server.example.com",
+  "site_name": "OA System",
+  "submit_protocol": {
+    "method": "save",
+    "docStatus_submit": "20",
+    "docStatus_draft": "10",
+    "endpoint": "/km/review/km_review_main/kmReviewMain.do",
+    "login_endpoint": "/j_acegi_security_check"
+  },
+  "flows": {
+    "Equipment Request": {
+      "template_id": "your-template-id-here",
+      "keywords": ["equipment", "IT request", "hardware"],
+      "fields": {
+        "content": {
+          "api_name": "extendDataFormInfo.value(fd_your_field_id)",
+          "type": "richtext",
+          "required": true,
+          "ask_user": true,
+          "ask_prompt": "Please describe the reason for this request",
+          "value_template": "<p>{用户输入}</p>"
+        },
+        "docSubject": {
+          "auto_fill": true,
+          "auto_rule": "Equipment Request-{申请说明}"
+        },
+        "category_type": {
+          "api_name": "extendDataFormInfo.value(fd_category_field_id)",
+          "type": "radio",
+          "required": true,
+          "ask_user": true,
+          "ask_prompt": "Request or Return?",
+          "value_map": {
+            "request": "1",
+            "return": "2"
+          }
+        },
+        "company_name": {
+          "api_name": "extendDataFormInfo.value(fd_company_field_id)",
+          "type": "select",
+          "required": true,
+          "ask_user": true,
+          "ask_prompt": "Which company?",
+          "value_map": {
+            "Company A": "company_a_id",
+            "Company B": "company_b_id"
+          }
+        }
+      }
+    }
+  }
+}
