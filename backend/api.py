@@ -255,7 +255,6 @@ async def chat_completions(req: ChatCompletionRequest):
     user_id = req.user or "default"
     agent = get_agent(user_id)
 
-    # 提取最后一条用户消息
     last_user_msg = ""
     for msg in reversed(req.messages):
         if msg.role == "user" and msg.content:
@@ -265,25 +264,29 @@ async def chat_completions(req: ChatCompletionRequest):
     if not last_user_msg:
         raise HTTPException(status_code=400, detail="No user message found")
 
+    import re as _re
+    file_paths = _re.findall(r'\[文件已上传:\s*(.+?)\]', last_user_msg)
+    clean_msg = _re.sub(r'\n*\[文件已上传:\s*.+?\]', '', last_user_msg).strip()
+
     if req.stream:
         return StreamingResponse(
-            _stream_response(agent, last_user_msg, req.model),
+            _stream_response(agent, clean_msg or last_user_msg, req.model, files=file_paths or None),
             media_type="text/event-stream",
         )
     else:
         full_response = ""
-        async for chunk in agent.chat(last_user_msg):
+        async for chunk in agent.chat(clean_msg or last_user_msg, files=file_paths or None):
             full_response += chunk
 
         return _build_response(full_response, req.model)
 
 
-async def _stream_response(agent, user_msg: str, model: str):
+async def _stream_response(agent, user_msg: str, model: str, files: Optional[list[str]] = None):
     """SSE 流式输出（OpenAI 格式）"""
     chat_id = f"chatcmpl-{uuid.uuid4().hex[:12]}"
     created = int(time.time())
 
-    async for chunk in agent.chat(user_msg):
+    async for chunk in agent.chat(user_msg, files=files):
         data = {
             "id": chat_id,
             "object": "chat.completion.chunk",
@@ -464,7 +467,7 @@ async def create_session(req: SessionCreateRequest):
 @app.get("/api/sessions")
 async def list_sessions():
     sessions = []
-    for f in sorted(_sessions_dir().glob("*.json"), reverse=True):
+    for f in _sessions_dir().glob("*.json"):
         try:
             d = json.loads(f.read_text(encoding="utf-8"))
             sessions.append({
@@ -475,6 +478,7 @@ async def list_sessions():
             })
         except:
             pass
+    sessions.sort(key=lambda s: s.get("updated_at", ""), reverse=True)
     return {"sessions": sessions}
 
 @app.get("/api/sessions/{session_id}")

@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import AsyncGenerator, Optional
 from backend.config import get_settings
-from backend.llm_client import chat_with_tools, chat_stream
+from backend.llm_client import chat_with_tools, chat_with_tools_stream, chat_stream
 from backend.tools.registry import registry
 import backend.tools.excel_reader
 import backend.tools.pdf_reader
@@ -243,7 +243,18 @@ class AgentEngine:
 
         matched_wf = self.workflows.match_workflow(user_message)
         if matched_wf:
-            yield f"🔄 匹配到工作流「{matched_wf['name']}」，开始执行\n\n"
+            wf_vars = matched_wf.get("variables", {})
+            missing = []
+            for var_name, var_val in wf_vars.items():
+                if isinstance(var_val, dict) and ("type" in var_val or "description" in var_val):
+                    missing.append(var_val.get("description", var_name))
+            if missing and not files:
+                yield f"🔄 匹配到工作流「{matched_wf['name']}」\n\n"
+                yield f"⚠️ 需要提供以下信息：\n"
+                for m in missing:
+                    yield f"- {m}\n"
+                yield "\n请告诉我具体内容，我来执行工作流。\n"
+                return
             variables = {}
             if files:
                 variables["file_path"] = files[0]
@@ -299,11 +310,22 @@ class AgentEngine:
         max_rounds = self.settings.max_tool_call_rounds
         for round_idx in range(max_rounds):
             tools = registry.get_schemas()
-            result = chat_with_tools(
+
+            thinking_text = ""
+            result = None
+            async for event in chat_with_tools_stream(
                 messages=self._build_messages(user_message),
                 tools=tools if tools else None,
                 temperature=0.3,
-            )
+            ):
+                if event["type"] == "text":
+                    yield event["content"]
+                elif event["type"] == "result":
+                    result = event
+
+            if result is None:
+                yield "⚠️ LLM 未返回结果\n"
+                return
 
             if "tool_calls" not in result:
                 response_text = result["content"]
@@ -311,7 +333,6 @@ class AgentEngine:
                 if result.get("reasoning_content"):
                     assistant_msg["reasoning_content"] = result["reasoning_content"]
                 self.conversation_history.append(assistant_msg)
-                yield response_text
                 self._process_workflow_building(response_text, user_message)
                 self._trigger_distillation(user_message, response_text)
                 async for chunk in self._suggest_save_workflow():
@@ -319,7 +340,7 @@ class AgentEngine:
                 return
 
             if result["content"]:
-                yield f"💭 {result['content']}\n\n"
+                pass
 
             assistant_msg = {
                 "role": "assistant",
@@ -573,6 +594,9 @@ class AgentEngine:
             elif evt_type == "workflow_failed":
                 yield f"❌ 工作流「{event['workflow_name']}」在「{event.get('failed_step', '')}」步骤失败\n"
 
+            elif evt_type == "error":
+                yield f"⚠️ {event.get('content', '未知错误')}\n"
+
     async def _resume_workflow(self, wf_id: str, step_id: str, confirm_response: str) -> AsyncGenerator[str, None]:
         if confirm_response in ["取消", "不对", "不是", "不"]:
             self._workflow_paused = None
@@ -729,16 +753,24 @@ class AgentEngine:
 def execute_code(code: str, language: str = "python") -> str:
     """
     在安全沙箱中执行 Python 代码。
-    用于数据处理、文件操作、图表生成等复杂任务。
-    代码中可以使用 pandas, openpyxl, numpy, matplotlib 等库。
+    用于数据处理、文件操作、图表生成等任务。
+
+    ✅ 可用库: pandas, numpy, openpyxl, xlrd, matplotlib, json, os, sys, pathlib, datetime, re, math, collections, itertools
+    ❌ 不可用: fpdf, reportlab, subprocess, requests, httpx, socket, webbrowser, tkinter
+
+    如需生成 PDF，请使用 matplotlib 保存图表为图片，或直接输出文本/Markdown 格式。
     参数 code: 要执行的 Python 代码
     """
     settings = get_settings()
     timeout = settings.tool_call_timeout
 
+    forbidden_imports = ["subprocess", "os.system", "os.popen", "socket", "webbrowser", "tkinter", "http.server"]
+    for fi in forbidden_imports:
+        if fi in code:
+            return f"[安全拦截] 禁止导入或使用: {fi}"
+
     try:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
-            # 注入常用 import
             preamble = (
                 "import pandas as pd\n"
                 "import numpy as np\n"
@@ -747,11 +779,20 @@ def execute_code(code: str, language: str = "python") -> str:
                 "    import xlrd\n"
                 "except ImportError:\n"
                 "    xlrd = None\n"
+                "try:\n"
+                "    import matplotlib\n"
+                "    matplotlib.use('Agg')\n"
+                "    import matplotlib.pyplot as plt\n"
+                "except ImportError:\n"
+                "    plt = None\n"
                 "import json\n"
                 "import os\n"
                 "import sys\n"
+                "import re\n"
+                "import math\n"
                 "from pathlib import Path\n"
                 "from datetime import datetime, date\n"
+                "from collections import Counter, defaultdict\n"
                 "\n"
             )
             f.write(preamble + code)
@@ -783,9 +824,14 @@ def execute_code(code: str, language: str = "python") -> str:
             stderr_lines = [l for l in stderr.split("\n") if not any(k in l for k in ["DeprecationWarning", "UserWarning", "FutureWarning", "pkg_resources"])]
             stderr = "\n".join(stderr_lines).strip()
             if stderr:
-                if len(stderr) > 500:
+                if "ModuleNotFoundError" in stderr:
+                    mod_match = re.search(r"No module named '(\w+)'", stderr)
+                    if mod_match:
+                        mod_name = mod_match.group(1)
+                        output_parts.append(f"❌ 库 '{mod_name}' 未安装。可用库: pandas, numpy, openpyxl, matplotlib。请使用这些库替代。")
+                elif len(stderr) > 500:
                     stderr = stderr[:500] + "..."
-                output_parts.append(f"[STDERR] {stderr}")
+                    output_parts.append(f"[STDERR] {stderr}")
 
         if result.returncode != 0:
             output_parts.insert(0, f"[退出码: {result.returncode}]")

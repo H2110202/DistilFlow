@@ -179,6 +179,9 @@ body {
 .session-item:hover { background: var(--accent-light); color: var(--accent); }
 .session-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
 .session-item-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session-item-delete { display: none; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 2px 6px; font-size: 14px; border-radius: 4px; }
+.session-item:hover .session-item-delete { display: block; }
+.session-item-delete:hover { color: var(--danger); background: var(--bg-hover); }
 
 .sidebar-footer {
   display: flex; align-items: center; gap: 2px;
@@ -1037,6 +1040,7 @@ let dingtalkConfigured = false;
 let conversationMessages = [];
 let uploadedFilePaths = [];
 let isStreaming = false;
+let isSwitching = false;
 let currentSessionId = null;
 let abortController = null;
 
@@ -1233,14 +1237,7 @@ function createAgentMsg() {
 }
 
 function processStream(fullText, bubble) {
-  let h = renderMarkdown(fullText);
-  h = h.replace(/🔧 调用工具: \S+<br>/g, '');
-  h = h.replace(/✅ (已读取|完成|确认继续)<br>/g, '');
-  h = h.replace(/❌ 错误: [^<]*<br>/g, '');
-  h = h.replace(/⚠️[^<]*<br>/g, '');
-  h = h.replace(/<matched_skill><br>[\s\S]*?<\/matched_skill>/g, '');
-  h = h.replace(/<\/matched_skill>/g, '');
-  bubble.innerHTML = h;
+  bubble.innerHTML = renderMarkdown(fullText);
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
@@ -1503,13 +1500,13 @@ function showFollowup(actionId, basePrompt, fileInfo) {
 
 async function refreshWorkflows() {
   try {
-    const r = await fetch(`${API_BASE}/api/workflows`);
+    const r = await fetch(`${API_BASE}/api/workflows?status=active`);
     if (!r.ok) return;
     const d = await r.json();
     const workflows = d.workflows || [];
     const el = document.getElementById('workflowList');
     if (workflows.length === 0) {
-      el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:8px 0;">暂无工作流。完成第一个任务后会自动生成。</div>';
+      el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:8px 0;">暂无已激活的工作流。完成第一个任务并保存后会显示在这里。</div>';
       return;
     }
     el.innerHTML = workflows.map(w => renderWorkflowGraph(w)).join('');
@@ -1545,13 +1542,9 @@ function renderWorkflowGraph(wf) {
     }
   });
 
-  const activateBtn = wf.status === 'draft'
-    ? '<button class="wf-action-btn primary" onclick="activateWorkflow(\'' + wf.id + '\')">激活工作流</button>'
-    : '';
+  const activateBtn = '';
   const deleteBtn = '<button class="wf-action-btn danger" onclick="deleteWorkflow(\'' + wf.id + '\')">删除</button>';
-  const runBtn = wf.status === 'active'
-    ? '<button class="wf-action-btn primary" onclick="runWorkflow(\'' + wf.id + '\')">▶ 执行</button>'
-    : '';
+  const runBtn = '<button class="wf-action-btn primary" onclick="runWorkflow(\'' + wf.id + '\')">▶ 执行</button>';
 
   return `<div class="workflow-graph" data-wf-id="${wf.id}">
     <div class="wf-header">
@@ -1649,11 +1642,26 @@ async function loadSessionList() {
       const btn = document.createElement('button');
       btn.className = 'session-item' + (s.id === currentSessionId ? ' active' : '');
       btn.dataset.id = s.id;
-      btn.innerHTML = `<span class="session-item-text">${escapeHtml(s.title)}</span>`;
-      btn.addEventListener('click', () => switchSession(s.id));
+      btn.innerHTML = `<span class="session-item-text">${escapeHtml(s.title)}</span><span class="session-item-delete" title="删除对话">×</span>`;
+      btn.querySelector('.session-item-text').addEventListener('click', () => switchSession(s.id));
+      btn.querySelector('.session-item-delete').addEventListener('click', (e) => { e.stopPropagation(); deleteSession(s.id); });
       list.appendChild(btn);
     }
   } catch(e) {}
+}
+
+async function deleteSession(sessionId) {
+  if (sessionId === currentSessionId) {
+    showToast('无法删除当前对话');
+    return;
+  }
+  if (!confirm('确定删除此对话？')) return;
+  try {
+    await fetch(`${API_BASE}/api/sessions/${sessionId}`, { method: 'DELETE' });
+    await loadSessionList();
+  } catch(e) {
+    showToast('删除失败');
+  }
 }
 
 async function createNewSession(title) {
@@ -1691,8 +1699,11 @@ async function saveCurrentSession() {
 }
 
 async function switchSession(sessionId) {
-  if (sessionId === currentSessionId) return;
-  await saveCurrentSession();
+  if (sessionId === currentSessionId || isSwitching) return;
+  isSwitching = true;
+  try {
+    await saveCurrentSession();
+  } catch(e) {}
   try {
     const r = await fetch(`${API_BASE}/api/sessions/${sessionId}`);
     if (!r.ok) {
@@ -1742,6 +1753,8 @@ async function switchSession(sessionId) {
   } catch(e) {
     console.error('switchSession error:', e);
     showToast('加载对话失败: ' + (e.message || '未知错误'));
+  } finally {
+    isSwitching = false;
   }
 }
 

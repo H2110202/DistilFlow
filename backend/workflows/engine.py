@@ -204,6 +204,14 @@ class WorkflowEngine:
                 resolved[k] = self._resolve_args(v, context)
             else:
                 resolved[k] = v
+        for k, v in resolved.items():
+            if isinstance(v, str) and v.startswith("{") and v.endswith("}"):
+                try:
+                    parsed = json.loads(v)
+                    if isinstance(parsed, dict) and ("type" in parsed or "description" in parsed):
+                        resolved[k] = None
+                except (json.JSONDecodeError, ValueError):
+                    pass
         return resolved
 
     def _evaluate_condition(self, step: dict, context: dict) -> str:
@@ -234,6 +242,19 @@ class WorkflowEngine:
             "variables": {**(wf.get("variables") or {}), **(variables or {})},
             "steps_output": {},
         }
+
+        missing_vars = []
+        for var_name, var_val in self._context.get("variables", {}).items():
+            if isinstance(var_val, dict) and ("type" in var_val or "description" in var_val):
+                desc = var_val.get("description", var_name)
+                missing_vars.append(f"- **{var_name}**: {desc}")
+        if missing_vars:
+            yield {
+                "type": "error",
+                "content": f"工作流「{wf['name']}」缺少必要参数，请提供以下信息：\n" + "\n".join(missing_vars),
+                "missing_variables": list(self._context["variables"].keys()),
+            }
+            return
 
         if resume_from and confirm_response:
             self._context["steps_output"][resume_from] = {"confirmed": True, "response": confirm_response}

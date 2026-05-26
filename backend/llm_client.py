@@ -249,3 +249,101 @@ async def chat_stream(
                         continue
     except Exception as e:
         yield f"\n[LLM调用失败] {e}"
+
+
+async def chat_with_tools_stream(
+    messages: list[dict],
+    model: Optional[str] = None,
+    tools: Optional[list[dict]] = None,
+    temperature: float = 0.3,
+    max_tokens: int = 4096,
+) -> AsyncGenerator[dict, None]:
+    """流式调用 LLM，逐 token yield 文本内容，最终 yield 完整结果（含 tool_calls）。
+
+    yield 格式:
+      {"type": "text", "content": "..."}  — 文本片段，逐 token
+      {"type": "result", "content": "...", "tool_calls": [...], "reasoning_content": "..."}  — 最终完整结果
+    """
+    settings = get_settings()
+    model_id = model or settings.default_model
+    api_key = settings.get_provider_key(settings.llm_provider)
+    base_url = settings.get_provider_base_url(settings.llm_provider)
+    endpoint = f"{base_url.rstrip('/')}/chat/completions"
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    body = _build_request(messages, model_id, tools, temperature, max_tokens)
+    body["stream"] = True
+
+    full_content = ""
+    reasoning_content = ""
+    tool_calls_map: dict[int, dict] = {}
+
+    try:
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            async with client.stream("POST", endpoint, headers=headers, json=body) as resp:
+                if resp.status_code != 200:
+                    err_text = await resp.aread()
+                    yield {"type": "result", "content": f"[LLM调用失败] HTTP {resp.status_code}", "error": True}
+                    return
+
+                async for line in resp.aiter_lines():
+                    if not line.startswith("data: "):
+                        continue
+                    data_str = line[6:].strip()
+                    if data_str == "[DONE]":
+                        break
+                    try:
+                        chunk = json.loads(data_str)
+                        choice = chunk.get("choices", [{}])[0]
+                        delta = choice.get("delta", {})
+
+                        content = delta.get("content")
+                        if content:
+                            full_content += content
+                            yield {"type": "text", "content": content}
+
+                        rc = delta.get("reasoning_content")
+                        if rc:
+                            reasoning_content += rc
+
+                        tc_deltas = delta.get("tool_calls")
+                        if tc_deltas:
+                            for tc in tc_deltas:
+                                idx = tc.get("index", 0)
+                                if idx not in tool_calls_map:
+                                    tool_calls_map[idx] = {"id": "", "name": "", "arguments": ""}
+                                if tc.get("id"):
+                                    tool_calls_map[idx]["id"] = tc["id"]
+                                fn = tc.get("function", {})
+                                if fn.get("name"):
+                                    tool_calls_map[idx]["name"] = fn["name"]
+                                if fn.get("arguments"):
+                                    tool_calls_map[idx]["arguments"] += fn["arguments"]
+                    except json.JSONDecodeError:
+                        continue
+
+    except Exception as e:
+        yield {"type": "result", "content": f"[LLM调用失败] {e}", "error": True}
+        return
+
+    parsed_tool_calls = []
+    for idx in sorted(tool_calls_map.keys()):
+        tc = tool_calls_map[idx]
+        try:
+            args = json.loads(tc["arguments"]) if tc["arguments"] else {}
+        except json.JSONDecodeError:
+            args = {}
+        parsed_tool_calls.append({
+            "id": tc["id"],
+            "name": tc["name"],
+            "arguments": args,
+        })
+
+    result = {"type": "result", "content": full_content}
+    if reasoning_content:
+        result["reasoning_content"] = reasoning_content
+    if parsed_tool_calls:
+        result["tool_calls"] = parsed_tool_calls
+    yield result
